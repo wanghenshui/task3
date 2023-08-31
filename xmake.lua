@@ -1,6 +1,6 @@
-add_rules("mode.debug", "mode.release")
-add_requires("benchmark")
-add_requires("gtest", {configs = {shared = true}})
+add_rules("mode.debug", "mode.releasedbg")
+add_requires("benchmark",{debug = false})
+add_requires("gtest")
 set_optimize("faster")
 
 
@@ -10,6 +10,7 @@ target("task3")
     add_links("benchmark")
     add_syslinks("pthread")
     add_files("task3/*.cpp")
+    set_rundir("$(projectdir)/")
 
 target("ut")
      set_kind("binary")
@@ -19,6 +20,7 @@ target("ut")
      add_packages("gtest")
      add_syslinks("pthread")
      add_files("ut/*.cpp")
+     set_rundir("$(projectdir)/")
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
 --

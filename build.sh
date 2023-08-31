@@ -1,1 +1,2 @@
-xmake --root
+xmake f -m releasedbg
+xmake 
