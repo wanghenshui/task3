@@ -1,0 +1,23 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: xmake-io/github-action-setup-xmake@v1
+      with:
+        xmake-version: branch@master
+        actions-cache-folder: '.xmake-cache'
+    - name: Build
+      run: bash build.sh
+    - name: Test
+      run: bash run.sh
