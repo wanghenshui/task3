@@ -1,2 +1,3 @@
 xmake f -m releasedbg
-xmake 
+xmake -y
+
