@@ -5,12 +5,14 @@ set_optimize("faster")
 
 
 set_languages("c++17")
+
+add_includedirs("./include")
 target("task3")
     set_kind("binary")
     add_links("benchmark")
     add_packages("benchmark")
     add_syslinks("pthread")
-    add_files("task3/*.cpp")
+    add_files("bm/task3.cpp")
     set_rundir("$(projectdir)/")
 
 target("ut")
