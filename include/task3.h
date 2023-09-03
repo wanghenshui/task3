@@ -150,8 +150,6 @@ int task3(const Row* rows, int nrow) {
     size_t count_2 = 0;
     size_t count_3 = 0;
     size_t start_3 = 0;
-    std::vector<Row> sortOfB;
-    sortOfB.reserve(1000);
     while (loop > 0) {
         step = loop / 2;
         if (rows[step].a < 1000){
@@ -252,14 +250,10 @@ int task3(const Row* rows, int nrow) {
             start_3 ++ ;
             count_3 --;
         }
-        sortOfB.push_back(min_row);
-    }
 #ifdef OUTPUT_PRINT
-    for (auto& v : sortOfB) {
-         std::cout << v.a << "," << v.b << "\n";
-    }
+        std::cout << min_row.a << "," << min_row.b << "\n";
 #endif
-
+    }
     return count;
 }
 
