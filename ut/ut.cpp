@@ -1,20 +1,19 @@
 #include <gtest/gtest.h>
 #include "task3.h"
-
-#define LEN 10000
+#include <random>
+#define LEN 100000
 Row global[LEN];
 
 TEST(HelloTest, BasicAssertions) {
   EXPECT_STRNE("hello", "world");
   prepare(global, LEN);
-  prepare(global, LEN);
-  task1(global, LEN);
-  task2(global, LEN);
-  task3(global, LEN);
-  EXPECT_EQ(7 * 6, 42);
+  task0(global, LEN);
+  EXPECT_EQ(task1(global, LEN), task2(global, LEN));
+  EXPECT_EQ(task1(global, LEN), task3(global, LEN));
+  EXPECT_EQ(task2(global, LEN), task3(global, LEN));
+  
+  EXPECT_EQ(task3_stl_sort(global, LEN), task3(global, LEN));
 }
-
-
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv); 

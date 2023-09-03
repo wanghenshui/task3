@@ -1,11 +1,10 @@
 add_rules("mode.debug", "mode.releasedbg")
-add_requires("benchmark",{debug = false})
+add_requires("benchmark")
 add_requires("gtest")
-set_optimize("faster")
+set_optimize("fastest")
 
 
-set_languages("c++17")
-
+set_languages("c++20")
 add_includedirs("./include")
 target("task3")
     set_kind("binary")
@@ -13,6 +12,12 @@ target("task3")
     add_packages("benchmark")
     add_syslinks("pthread")
     add_files("bm/task3.cpp")
+    set_rundir("$(projectdir)/")
+
+target("print")
+    set_kind("binary")
+    add_defines("OUTPUT_PRINT")
+    add_files("misc/print_task.cpp")
     set_rundir("$(projectdir)/")
 
 target("ut")

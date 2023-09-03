@@ -2,38 +2,45 @@
 #include <benchmark/benchmark.h>
 #include "task3.h"
 
-#define LEN 1000000
+#define LEN 10000000
 Row global[LEN];
 
-static void BM_task0(benchmark::State& state) {
+#define BM(f) \
+static void BM_##f(benchmark::State& state) {\
+    for (auto _ : state) {\
+       auto ret = f(global, LEN);\
+       benchmark::DoNotOptimize(ret); \
+    }\
+}\
+BENCHMARK(BM_##f)->Iterations(1000);
+
+
+// warm
+static void BM_warm(benchmark::State& state) {
     prepare(global, LEN);
     for (auto _ : state) {
         task0(global, LEN);
     }
 }
 
-static void BM_task1(benchmark::State& state) {
+BENCHMARK(BM_warm)->Iterations(1000);
+
+/*
+fixed_thread_pool ths;
+
+static void BM_task2_mt(benchmark::State& state) {
     for (auto _ : state) {
-        task1(global, LEN);
+       auto ret = task2_mt(global, LEN, &ths);
+       benchmark::DoNotOptimize(ret);
     }
+
 }
+BENCHMARK(BM_task2_mt)->Iterations(10000);
+*/
 
-static void BM_task2(benchmark::State& state) {
-    for (auto _ : state) {
-        task2(global, LEN);
-    }
-}
+BM(task1);
+BM(task2);
+BM(task3);
+BM(task3_stl_sort);
 
-
-static void BM_task3(benchmark::State& state) {
-    for (auto _ : state) {
-        task3(global, LEN);
-    }
-}
-
-
-BENCHMARK(BM_task0)->Iterations(10000);
-BENCHMARK(BM_task3)->Iterations(10000);
-BENCHMARK(BM_task2)->Iterations(10000);
-BENCHMARK(BM_task1)->Iterations(10000);
 BENCHMARK_MAIN();
