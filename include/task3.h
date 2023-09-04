@@ -16,6 +16,14 @@ struct Row {
   int b;
 };
 
+bool operator==(const Row& l, const Row& r) {
+    return l.a == r.a && l.b == r.b;
+}
+
+// 基于b的偏序
+bool operator<(const Row& l, const Row& r) {
+    return l.b < r.b || (l.b == r.b && l.a < r.a);
+}
 
 /*
 Row sorted_rows[] =
@@ -35,10 +43,11 @@ Row sorted_rows[] =
 
 void prepare(Row* rows, int nrow) {
     for (auto i = 0; i < nrow; i++) {
-        rows[i].b = i  % 60;
-        // 映射10000
-        int mod = nrow / 10000;
-        rows[i].a =  i  / mod;
+        rows[i].b = i  % 33333;
+        // 映射15697
+        //int mod = nrow / 15697;
+        //rows[i].a =  i  / mod;
+        rows[i].a = i / 100;
     }
 }
 
@@ -67,22 +76,46 @@ int task1(const Row* rows, int nrow) {
     return count;
 }
 
+// 旧版本简化，只二分a
+int find_a(const Row* rows,int len, int start,  int target) {
+    int i = 0;
+    size_t step = 0;
+    while (len > 0) {
+        step = (len + start) / 2;
+        if (rows[step].a < target){
+            i = step+1; 
+            len -= step + 1; 
+        } else {
+            len = step;
+        }
+    }
+    return i;
+}
+
+// 二分 a b
+int find_ab(const Row* rows,int len, int start, int target) {
+    int i = 0;
+    size_t step = 0;
+    while (len > 0) {
+        step = (len + start) / 2;
+        if (rows[step].a < target ||
+         (rows[step].a == target && rows[step].b < 10)){
+            i = step+1; 
+            len -= step + 1; 
+        } else {
+            len = step;
+        }
+    }
+    return i;
+}
 // is sort by a,b
 // 二分找到上下界，判断是否满足10<=x<50
 int task2(const Row* rows, int nrow) {
     auto loop = nrow;
     auto count = 0;
     size_t i = 0;
-    size_t step = 0;
-    while (loop > 0) {
-        step = loop / 2;
-        if (rows[step].a < 1000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+
+    i = find_a(rows, nrow, i, 1000);
     for (;i<nrow &&rows[i].a <= 1000;i++) {
         if (rows[i].a == 1000 && rows[i].b>= 10 && rows[i].b < 50) {
 
@@ -93,17 +126,8 @@ int task2(const Row* rows, int nrow) {
             count++;
         }
     }
-    loop = nrow;
-    while (loop > 0) {
-        step = (i + loop) / 2;
-        if (rows[step].a < 2000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
-    for (;i<nrow &&rows[i].a <= 2000;i++) {
+    i = find_a(rows, nrow, i, 2000);
+    for (;i<nrow &&rows[i].a <= 2000 ;i++) {
         if (rows[i].a == 2000 && rows[i].b>= 10 && rows[i].b < 50) {
             
 #ifdef OUTPUT_PRINT
@@ -112,16 +136,7 @@ int task2(const Row* rows, int nrow) {
             count++;
         }
     }
-    loop = nrow;
-    while (loop > 0) {
-        step = (i + loop) / 2;
-        if (rows[step].a < 3000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+    i = find_a(rows, nrow, i, 3000);
     for (;i<nrow && rows[i].a <= 3000;i++) {
         if (rows[i].a == 3000 && rows[i].b>= 10 && rows[i].b < 50) {
  
@@ -135,30 +150,61 @@ int task2(const Row* rows, int nrow) {
     return count;
 }
 
-
-
-// is sort by ab, result as sort b
-// bucket
-int task3(const Row* rows, int nrow) {
+int task2b(const Row* rows, int nrow) {
     auto loop = nrow;
     auto count = 0;
     size_t i = 0;
-    size_t step = 0;
+
+    i = find_ab(rows, nrow, i, 1000);
+    for (;i<nrow &&rows[i].a <= 1000;i++) {
+        if (rows[i].a == 1000 && rows[i].b >= 10 && rows[i].b < 50) {
+
+#ifdef OUTPUT_PRINT
+            std::cout << rows[i].a << "," << rows[i].b << "\n";
+#endif
+
+            count++;
+        }
+    }
+    i = find_ab(rows, nrow, i, 2000);
+    for (;i<nrow &&rows[i].a <= 2000;i++) {
+        if (rows[i].a == 2000 && rows[i].b >= 10 && rows[i].b < 50) {
+            
+#ifdef OUTPUT_PRINT
+            std::cout << rows[i].a << "," << rows[i].b << "\n";
+#endif
+            count++;
+        }
+    }
+    i = find_ab(rows, nrow, i, 3000);
+    for (;i<nrow && rows[i].a <= 3000;i++) {
+        if (rows[i].a == 3000 && rows[i].b >= 10  && rows[i].b < 50 ) {
+ 
+#ifdef OUTPUT_PRINT
+            std::cout << rows[i].a << "," << rows[i].b << "\n";
+#endif
+
+            count++;
+        }
+    }
+    return count;
+}
+
+
+// is sort by ab, result as sort b
+// bucket，相当于桶为3 桶排序
+// 如果满足条件的b过多，导致桶太深，效果不如std::sort(比较次数太多)
+int task3(const Row* rows, int nrow) {
+    auto count = 0;
+    size_t i = 0;
     size_t start_1 = 0;
     size_t count_1 = 0;
     size_t start_2 = 0;
     size_t count_2 = 0;
     size_t count_3 = 0;
     size_t start_3 = 0;
-    while (loop > 0) {
-        step = loop / 2;
-        if (rows[step].a < 1000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+
+    i = find_a(rows, nrow, i, 1000);
     for (;i<nrow &&rows[i].a <= 1000;i++) {
         if (rows[i].a == 1000 && rows[i].b>= 10 && rows[i].b < 50) {
             if (start_1 == 0) {
@@ -169,16 +215,7 @@ int task3(const Row* rows, int nrow) {
         }
     }
 
-    loop = nrow;
-    while (loop > 0) {
-        step = (loop + i) / 2;
-        if (rows[step].a < 2000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+    i = find_a(rows, nrow, i, 2000);
     for (;i<nrow &&rows[i].a <= 2000;i++) {
         if (rows[i].a == 2000&& rows[i].b>= 10 && rows[i].b < 50) {
             if (start_2 == 0) {
@@ -190,16 +227,7 @@ int task3(const Row* rows, int nrow) {
     }
 
 
-    loop = nrow;
-    while (loop > 0) {
-        step = (loop + i) / 2;
-        if (rows[step].a < 3000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+    i = find_a(rows, nrow, i, 3000);
     for (;i<nrow && rows[i].a <= 3000;i++) {
         if (rows[i].a == 3000&& rows[i].b>= 10 && rows[i].b < 50) {
             if (start_3 == 0) {
@@ -215,24 +243,110 @@ int task3(const Row* rows, int nrow) {
         bool e1 = false;
         bool e2 = false;
         bool e3 = false;
-        #undef MIN
-        #define MIN(x, y) (x.b < y.b || (x.b== y.b &&x.a < y.a) ? x:y)
-        #undef EQ
-        #define EQ(x ,y) (x.a == y.a && x.b == y.b)
+
         if (count_1 != 0) {
-            min_row = MIN(min_row, rows[start_1]);
-            e1 = EQ(min_row,rows[start_1]);
+            min_row = min_row < rows[start_1] ? min_row : rows[start_1];
+            e1 = min_row == rows[start_1];
         }
         if (count_2 != 0) {
-            min_row = MIN(min_row, rows[start_2]);
-            e2 = EQ(min_row,rows[start_2]);
+            min_row = min_row < rows[start_2] ? min_row : rows[start_2];
+            e2 = min_row == rows[start_2];
             if (e2) {
                 e1 = false;
             }
         }
         if (count_3 != 0) {
-            min_row = MIN(min_row, rows[start_3]);
-            e3 = EQ(min_row,rows[start_3]);
+            min_row = min_row < rows[start_3] ? min_row : rows[start_3];
+            e3 = min_row == rows[start_3];
+            if (e3) {
+                e1 = false;
+                e2 = false;
+            }
+        }
+        if (e1) {
+            start_1 ++ ;
+            count_1 --;
+        }
+        if (e2) {
+            start_2 ++ ;
+            count_2 --;
+        }
+        if (e3) {
+            start_3 ++ ;
+            count_3 --;
+        }
+#ifdef OUTPUT_PRINT
+        std::cout << min_row.a << "," << min_row.b << "\n";
+#endif
+    }
+    return count;
+}
+
+// 补充基于b的二分
+int task3b(const Row* rows, int nrow) {
+    auto count = 0;
+    size_t i = 0;
+    size_t start_1 = 0;
+    size_t count_1 = 0;
+    size_t start_2 = 0;
+    size_t count_2 = 0;
+    size_t count_3 = 0;
+    size_t start_3 = 0;
+
+    i = find_ab(rows, nrow, i, 1000);
+    for (;i<nrow &&rows[i].a <= 1000;i++) {
+        if (rows[i].a == 1000 && rows[i].b>= 10 && rows[i].b < 50) {
+            if (start_1 == 0) {
+                start_1 = i;
+            }
+            
+            count_1 ++;
+        }
+    }
+
+    i = find_ab(rows, nrow, i, 2000);
+    for (;i<nrow &&rows[i].a <= 2000;i++) {
+        if (rows[i].a == 2000&& rows[i].b>= 10 && rows[i].b < 50) {
+            if (start_2 == 0) {
+                start_2 = i;
+            }
+
+            count_2 ++;
+        }
+    }
+
+
+    i = find_ab(rows, nrow, i, 3000);
+    for (;i<nrow && rows[i].a <= 3000;i++) {
+        if (rows[i].a == 3000&& rows[i].b>= 10 && rows[i].b < 50) {
+            if (start_3 == 0) {
+                start_3 = i;
+            }
+            count_3 ++;
+        }
+    }
+
+    count = count_1 + count_2 + count_3;
+    while (count_1 || count_2 || count_3) {
+        Row min_row {INT32_MAX,INT32_MAX};
+        bool e1 = false;
+        bool e2 = false;
+        bool e3 = false;
+
+        if (count_1 != 0) {
+            min_row = min_row < rows[start_1] ? min_row : rows[start_1];
+            e1 = min_row == rows[start_1];
+        }
+        if (count_2 != 0) {
+            min_row = min_row < rows[start_2] ? min_row : rows[start_2];
+            e2 = min_row == rows[start_2];
+            if (e2) {
+                e1 = false;
+            }
+        }
+        if (count_3 != 0) {
+            min_row = min_row < rows[start_3] ? min_row : rows[start_3];
+            e3 = min_row == rows[start_3];
             if (e3) {
                 e1 = false;
                 e2 = false;
@@ -260,24 +374,14 @@ int task3(const Row* rows, int nrow) {
 
 // is sort by ab, result as sort b
 int task3_stl_sort(const Row* rows, int nrow) {
-    auto loop = nrow;
     auto count = 0;
     size_t i = 0;
-    size_t step = 0;
     size_t count_1 = 0;
     size_t count_2 = 0;
     size_t count_3 = 0;
     std::vector<Row> sortOfB;
     sortOfB.reserve(1000);
-    while (loop > 0) {
-        step = loop / 2;
-        if (rows[step].a < 1000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+    i = find_a(rows, nrow, i, 1000);
     for (;i<nrow &&rows[i].a <= 1000;i++) {
         if (rows[i].a == 1000 && rows[i].b>= 10 && rows[i].b < 50) {
 
@@ -286,16 +390,7 @@ int task3_stl_sort(const Row* rows, int nrow) {
         }
     }
 
-    loop = nrow;
-    while (loop > 0) {
-        step = (loop + i) / 2;
-        if (rows[step].a < 2000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
-        }
-    }
+    i = find_a(rows, nrow, i, 2000);
     for (;i<nrow &&rows[i].a <= 2000;i++) {
         if (rows[i].a == 2000&& rows[i].b>= 10 && rows[i].b < 50) {
             sortOfB.push_back(rows[i]);
@@ -304,16 +399,56 @@ int task3_stl_sort(const Row* rows, int nrow) {
     }
 
 
-    loop = nrow;
-    while (loop > 0) {
-        step = (loop + i) / 2;
-        if (rows[step].a < 3000){
-            i = step+1; 
-            loop -= step + 1; 
-        } else {
-            loop = step;
+    i = find_a(rows, nrow, i, 3000);
+    for (;i<nrow && rows[i].a <= 3000;i++) {
+        if (rows[i].a == 3000&& rows[i].b>= 10 && rows[i].b < 50) {
+            sortOfB.push_back(rows[i]);
+            count_3 ++;
         }
     }
+    std::sort(sortOfB.begin(), sortOfB.end(), 
+        [](const Row& a, const Row&b) {
+                return a.b < b.b;
+            }
+        );
+    count = count_1 + count_2 + count_3;
+#ifdef OUTPUT_PRINT
+    for (auto& v : sortOfB) {
+         std::cout << v.a << "," << v.b << "\n";
+    }
+#endif
+
+    return count;
+}
+
+// is sort by ab, result as sort b
+int task3b_stl_sort(const Row* rows, int nrow) {
+    auto count = 0;
+    size_t i = 0;
+    size_t count_1 = 0;
+    size_t count_2 = 0;
+    size_t count_3 = 0;
+    std::vector<Row> sortOfB;
+    sortOfB.reserve(1000);
+    i = find_ab(rows, nrow, i, 1000);
+    for (;i<nrow &&rows[i].a <= 1000;i++) {
+        if (rows[i].a == 1000 && rows[i].b>= 10 && rows[i].b < 50) {
+
+            sortOfB.push_back(rows[i]);
+            count_1 ++;
+        }
+    }
+
+    i = find_ab(rows, nrow, i, 2000);
+    for (;i<nrow &&rows[i].a <= 2000;i++) {
+        if (rows[i].a == 2000&& rows[i].b>= 10 && rows[i].b < 50) {
+            sortOfB.push_back(rows[i]);
+            count_2 ++;
+        }
+    }
+
+
+    i = find_ab(rows, nrow, i, 3000);
     for (;i<nrow && rows[i].a <= 3000;i++) {
         if (rows[i].a == 3000&& rows[i].b>= 10 && rows[i].b < 50) {
             sortOfB.push_back(rows[i]);

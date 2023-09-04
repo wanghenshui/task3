@@ -13,6 +13,9 @@ TEST(HelloTest, BasicAssertions) {
   EXPECT_EQ(task2(global, LEN), task3(global, LEN));
   
   EXPECT_EQ(task3_stl_sort(global, LEN), task3(global, LEN));
+  EXPECT_EQ(task2b(global, LEN), task3(global, LEN));
+  EXPECT_EQ(task2b(global, LEN), task3b(global, LEN));
+  EXPECT_EQ(task3b_stl_sort(global, LEN), task3(global, LEN));
 }
 
 int main(int argc, char **argv) {

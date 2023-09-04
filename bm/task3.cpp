@@ -2,7 +2,7 @@
 #include <benchmark/benchmark.h>
 #include "task3.h"
 
-#define LEN 10000000
+#define LEN 80000000
 Row global[LEN];
 
 #define BM(f) \
@@ -12,7 +12,7 @@ static void BM_##f(benchmark::State& state) {\
        benchmark::DoNotOptimize(ret); \
     }\
 }\
-BENCHMARK(BM_##f)->Iterations(1000);
+BENCHMARK(BM_##f)->Iterations(10000);
 
 
 // warm
@@ -40,7 +40,10 @@ BENCHMARK(BM_task2_mt)->Iterations(10000);
 
 BM(task1);
 BM(task2);
+BM(task2b);
 BM(task3);
+BM(task3b);
 BM(task3_stl_sort);
+BM(task3b_stl_sort);
 
 BENCHMARK_MAIN();
